@@ -31,37 +31,32 @@ public class Util {
 
     public static void executeWithConnection(SQLConsumer<Connection> cons) {
         try (Connection connection = dataSource.getConnection()) {
+            connection.setAutoCommit(false);
             cons.accept(connection);
         } catch (Exception e) {
         }
     }
 
-    public static <R> R executeWithConnection(SQLFunction<Connection, ? extends R> func) {
-        try (Connection connection = dataSource.getConnection()) {
-            return func.apply(connection);
-        } catch (Exception e) {
-        }
-        return null;//может стоит заворачивать в опционал?...
-    }
 
     public static void executeWithStatement(Connection connection, SQLConsumer<Statement> cons) {
         try (Statement statement = connection.createStatement()) {
             cons.accept(statement);
+            connection.commit();
         } catch (Exception e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {}
         }
-    }
-
-    public static <R> R executeWithStatement(Connection connection, SQLFunction<Statement, ? extends R> func) {
-        try (Statement statement = connection.createStatement()) {
-            return func.apply(statement);
-        } catch (Exception e) {}
-        return null;
     }
 
     public static void executeWithPreparedStatement(Connection connection, String sql, SQLConsumer<PreparedStatement> cons) {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             cons.accept(statement);
+            connection.commit();
         } catch (Exception e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {}
         }
     }
 

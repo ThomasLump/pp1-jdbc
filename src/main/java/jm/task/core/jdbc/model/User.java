@@ -27,6 +27,10 @@ public class User {
         this.lastName = lastName;
         this.age = age;
     }
+    public User(Long id, String name, String lastname, Byte age) {
+        this(name, lastname, age);
+        this.id = id;
+    }
 
     @Override
     public String toString() {

@@ -13,7 +13,7 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void createUsersTable() {
-        String sql = "CREATE TABLE user (" +
+        String sql = "CREATE TABLE IF NOT EXISTS user (" +
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY," +
                 "name VARCHAR(255) NOT NULL," +
                 "lastname VARCHAR(255) NOT NULL," +
@@ -26,7 +26,7 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void dropUsersTable() {
-        String sql = "DROP TABLE user";
+        String sql = "DROP TABLE IF EXISTS user";
         Util.executeWithConnection(connection -> {
             Util.executeWithStatement(connection, statement -> {
                 statement.execute(sql);
@@ -60,32 +60,25 @@ public class UserDaoJDBCImpl implements UserDao {
     public List<User> getAllUsers() {
         String sql = "SELECT * FROM user";
         List<User> users = new ArrayList<>();
-        return Util.executeWithConnection(connection -> {
-            return Util.executeWithStatement(connection, statement -> {
+        Util.executeWithConnection(connection -> {
+            Util.executeWithStatement(connection, statement -> {
                 try (ResultSet resultSet = statement.executeQuery(sql)) {
                     while (resultSet.next()) {
-                        /*users.add(new User(
-                                resultSet.getString("name"),
-                                resultSet.getString("lastname"),
-                                resultSet.getByte("age")
-                        ));*/
-                        //как бы сюда айди присрать еще, не делая новый конструктор
                         User addedUser = new User(
+                                resultSet.getLong("id"),
                                 resultSet.getString("name"),
                                 resultSet.getString("lastname"),
-                                resultSet.getByte("age")
-                        );
-                        addedUser.setId(resultSet.getLong("id"));
+                                resultSet.getByte("age"));
                         users.add(addedUser);
                     }
-                    return users;
                 }
             });
         });
+        return users;
     }
 
     public void cleanUsersTable() {
-        String sql = "DELETE FROM user";
+        String sql = "TRUNCATE TABLE IF EXISTS user";
         Util.executeWithConnection(connection -> {
             Util.executeWithStatement(connection, statement -> {
                 statement.execute(sql);
